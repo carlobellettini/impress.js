@@ -89,7 +89,27 @@
     var byId = function ( id ) {
         return document.getElementById(id);
     };
-    
+	
+	var presentSubStep = function (element) {
+		var subSteps =  element.querySelectorAll(".substep");
+		if (subSteps != null)
+			for ( var i=0; i<subSteps.length; i++)
+				if (subSteps[i].classList.contains("present"))
+					return i+1;
+		return 0;
+	}
+	
+    var byIdwithSS = function ( id , ss) {
+		var el = document.getElementById(id);
+		var substep = presentSubStep(el);
+		for (var i = substep; i<ss; i++)
+			substepForward(el);
+		for (var j = substep; j>ss; j--)
+			substepBackward(el);
+		var substep = presentSubStep(el);
+		return el;
+    };
+
     // `$` returns first element for given CSS `selector` in the `context` of
     // the given element or whole document.
     var $ = function ( selector, context ) {
@@ -143,7 +163,10 @@
     var getElementFromHash = function () {
         // get id from url # by removing `#` or `#/` from the beginning,
         // so both "fallback" `#slide-id` and "enhanced" `#/slide-id` will work
-        return byId( window.location.hash.replace(/^#\/?/,"") );
+        if (window.location.hash.indexOf("._")!=-1)
+            return byIdwithSS( window.location.hash.replace(/^#\/?/,"").replace(/\._.*$/,""), window.location.hash.replace(/^.*\._/,"") );
+        else
+            return byId( window.location.hash.replace(/^#\/?/,"") );
     };
     
     // `computeWindowScale` counts the scale factor between window size and size
@@ -839,7 +862,10 @@
                 
                 // if it's a link to presentation step, target this step
                 if ( href && href[0] === '#' ) {
-                    target = document.getElementById( href.slice(1) );
+                    if (href.indexOf("._")!=-1)
+                        target = byIdwithSS( href.slice(1).replace(/\._.*$/,""), href.replace(/^.*\._/,"") );
+                    else
+                        target = document.getElementById( href.slice(1) );
                 }
             }
             
